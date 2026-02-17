@@ -1,4 +1,4 @@
-# app/main.py
+
 from fastapi import FastAPI
 
 from app.config import SERVICE_NAME
@@ -7,7 +7,7 @@ from app.controllers.user_controller import router as users_router
 
 app = FastAPI(title=SERVICE_NAME)
 
-# ✅ All user endpoints are under /users
+
 app.include_router(users_router)
 
 
@@ -24,3 +24,4 @@ async def shutdown():
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
