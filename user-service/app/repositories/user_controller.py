@@ -1,4 +1,3 @@
-# app/controllers/user_controller.py
 from typing import List
 
 from fastapi import APIRouter, Query, status
@@ -95,3 +94,4 @@ async def register_user(user_id: int) -> RegisterResponse:
 async def user_status(user_id: int) -> UserStatusResponse:
     data = await UserService.get_user_status(user_id)
     return UserStatusResponse(**data)
+
