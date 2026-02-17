@@ -1,4 +1,3 @@
-# app/schemas/answer_schemas.py
 from __future__ import annotations
 
 from datetime import datetime
@@ -24,3 +23,4 @@ class AnswerListResponse(BaseModel):
     total: int
     limit: int
     offset: int
+
