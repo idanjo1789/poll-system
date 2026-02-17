@@ -1,0 +1,90 @@
+services:
+  mysql-user:
+    image: mysql:8.0
+    container_name: mysql-user
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: user_db
+    volumes:
+      - mysql_user_data:/var/lib/mysql
+      - ./db-init/user:/docker-entrypoint-initdb.d:ro
+    # ✅ enable access from host (Windows) for local user-service runs
+    ports:
+      - "3308:3306"
+
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -proot --silent"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  mysql-poll:
+    image: mysql:8.0
+    container_name: mysql-poll
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: poll_db
+    volumes:
+      - mysql_poll_data:/var/lib/mysql
+      - ./db-init/poll:/docker-entrypoint-initdb.d:ro
+    # (Optional) access from host for debugging
+    ports:
+      - "3307:3306"
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -proot --silent"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  user-service:
+    build:
+      context: ./user-service
+    container_name: user-service
+    restart: unless-stopped
+    depends_on:
+      mysql-user:
+        condition: service_healthy
+    environment:
+      RUNNING_IN_DOCKER: "1"
+      SERVICE_NAME: user-service
+      DB_HOST: mysql-user
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASSWORD: root
+      DB_NAME: user_db
+
+      POLL_SERVICE_BASE_URL: http://poll-service:8002
+      INTERNAL_API_KEY: super-secret-key
+    ports:
+      - "8001:8001"
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8001"]
+
+  poll-service:
+    build:
+      context: ./poll-service
+    container_name: poll-service
+    restart: unless-stopped
+    depends_on:
+      mysql-poll:
+        condition: service_healthy
+      user-service:
+        condition: service_started
+    environment:
+      SERVICE_NAME: poll-service
+      DB_HOST: mysql-poll
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASSWORD: root
+      DB_NAME: poll_db
+
+      USER_SERVICE_BASE_URL: http://user-service:8001
+      INTERNAL_API_KEY: super-secret-key
+    ports:
+      - "8002:8002"
+    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8002"]
+
+volumes:
+  mysql_user_data:
+  mysql_poll_data:
