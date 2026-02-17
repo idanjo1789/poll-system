@@ -1,8 +1,8 @@
-# app/config.py
+
 import os
 from dotenv import load_dotenv
 
-# ✅ Load .env only for local development (not inside Docker)
+
 if os.getenv("RUNNING_IN_DOCKER", "0") != "1":
     load_dotenv(override=True)
 
@@ -18,3 +18,4 @@ DATABASE_URL = f"mysql+aiomysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{D
 
 POLL_SERVICE_BASE_URL = os.getenv("POLL_SERVICE_BASE_URL", "http://poll-service:8002")
 INTERNAL_API_KEY = os.getenv("INTERNAL_API_KEY", "")
+
