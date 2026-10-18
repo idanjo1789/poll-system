@@ -7,7 +7,7 @@ from app.controllers.user_controller import router as users_router
 
 app = FastAPI(title=SERVICE_NAME)
 
-# ✅ All user endpoints are under /users
+
 app.include_router(users_router)
 
 
