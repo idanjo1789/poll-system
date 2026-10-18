@@ -13,7 +13,7 @@ class UserRepository:
     (not sqlalchemy.text()) to avoid TextClause .values() errors.
     """
 
-    # --- CREATE ---
+  
     @staticmethod
     async def create_user(data: Dict[str, Any]) -> int:
         joining_date = data.get("joining_date") or datetime.utcnow()
@@ -36,7 +36,7 @@ class UserRepository:
         )
         return int(new_id)
 
-    # --- READ ---
+  
     @staticmethod
     async def get_user_by_id(user_id: int) -> Optional[Dict[str, Any]]:
         row = await database.fetch_one(
@@ -55,7 +55,6 @@ class UserRepository:
 
     @staticmethod
     async def list_users(limit: int = 100, offset: int = 0) -> List[Dict[str, Any]]:
-        # Keep safe casting; also avoids driver issues with LIMIT bind params
         limit = int(limit)
         offset = int(offset)
 
@@ -68,7 +67,7 @@ class UserRepository:
         )
         return [dict(r) for r in rows]
 
-    # --- UPDATE ---
+   
     @staticmethod
     async def update_user(user_id: int, data: Dict[str, Any]) -> bool:
         allowed_fields = {"first_name", "last_name", "email", "age", "address"}
@@ -90,7 +89,7 @@ class UserRepository:
         await database.execute(query, params)
         return True
 
-    # --- DELETE ---
+    
     @staticmethod
     async def delete_user(user_id: int) -> bool:
         exists = await database.fetch_one(
@@ -106,7 +105,7 @@ class UserRepository:
         )
         return True
 
-    # --- REGISTER / STATUS ---
+    
     @staticmethod
     async def set_registered(user_id: int) -> bool:
         exists = await database.fetch_one(
