@@ -1,12 +1,3 @@
-# preflight_poll_service.py
-# Run:
-#   python preflight_poll_service.py
-#
-# Env (optional):
-#   set POLL_BASE_URL=http://127.0.0.1:8002
-#   set USER_BASE_URL=http://127.0.0.1:8001
-#   set INTERNAL_API_KEY=your_key   (only if you want to test internal endpoint directly)
-
 import asyncio
 import os
 import time
@@ -125,35 +116,35 @@ async def main() -> None:
         await assert_status(r2, 200, "User health")
         ok("user-service /health OK")
 
-        # Create users
+        
         u_registered = await create_user(client, first="Idan", last="Registered", registered=False)
         u_unregistered = await create_user(client, first="Idan", last="Unregistered", registered=False)
 
         registered_id = int(u_registered["user_id"])
         unregistered_id = int(u_unregistered["user_id"])
 
-        # Register only one of them
+        
         await register_user(client, registered_id)
 
-        # Create question
+        
         q = await create_question(client)
         question_id = int(q.get("question_id") or q.get("id") or q.get("questionId", 0))
         if not question_id:
             fail(f"Question id not found in response: {q}")
         ok(f"Question created: {question_id}")
 
-        # Create 4 answers
+        
         for i in range(1, 5):
             a = await create_answer(client, question_id, text=f"Answer {i}")
             ok(f"Answer {i} created (answer_id={a.get('answer_id')}, choice={a.get('choice')})")
 
-        # 5th answer must fail with 409
+        
         r = await client.post(f"{POLL_BASE_URL}/questions/{question_id}/answers", json={"text": "Answer 5"})
         if r.status_code != 409:
             fail(f"Expected 409 on 5th answer, got {r.status_code}. Body: {r.text}")
         ok("5th answer blocked (409) OK")
 
-        # List answers and verify choices 1..4
+        
         answers_list = await list_answers(client, question_id)
         items = answers_list.get("items", [])
         if len(items) != 4:
@@ -164,41 +155,39 @@ async def main() -> None:
             fail(f"Expected choices [1,2,3,4], got {choices}")
         ok("Answers list OK (choices 1..4)")
 
-        # Vote create (registered)
+        
         v = await vote_create(client, question_id, registered_id, choice=2)
         ok(f"Vote created: vote_id={v.get('vote_id')} choice={v.get('choice')}")
 
-        # Duplicate vote must 409
+        
         r = await client.post(f"{POLL_BASE_URL}/questions/{question_id}/vote", json={"user_id": registered_id, "choice": 3})
         if r.status_code != 409:
             fail(f"Expected 409 on duplicate vote, got {r.status_code}. Body: {r.text}")
         ok("Duplicate vote blocked (409) OK")
 
-        # Update vote
+        
         v2 = await vote_update(client, question_id, registered_id, choice=4)
         if int(v2.get("choice")) != 4:
             fail(f"Expected updated choice=4, got {v2}")
         ok("Vote update OK")
 
-        # Unregistered user cannot vote -> 403
+        
         r = await client.post(f"{POLL_BASE_URL}/questions/{question_id}/vote", json={"user_id": unregistered_id, "choice": 1})
         if r.status_code != 403:
             fail(f"Expected 403 for unregistered user vote, got {r.status_code}. Body: {r.text}")
         ok("Unregistered user blocked (403) OK")
 
-        # Delete registered user (should trigger cascade deletion via internal call in your user-service)
         await delete_user(client, registered_id)
 
-        # After deletion: voting again should be 404 (user not found) OR 403 (depends on your user-service get_user behavior)
         r = await client.post(f"{POLL_BASE_URL}/questions/{question_id}/vote", json={"user_id": registered_id, "choice": 1})
         if r.status_code not in (404, 403):
             fail(f"Expected 404/403 after user deletion, got {r.status_code}. Body: {r.text}")
         ok("Vote after user deletion blocked (404/403) OK")
 
-        # Optional: directly test internal deletion endpoint (only if INTERNAL_API_KEY is set)
+        
         await internal_delete_votes(client, unregistered_id)
 
-        # Cleanup: delete second user
+        
         await delete_user(client, unregistered_id)
 
         ok("ALL PREFLIGHT CHECKS PASSED ✅")
