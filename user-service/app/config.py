@@ -2,7 +2,7 @@
 import os
 from dotenv import load_dotenv
 
-# ✅ Load .env only for local development (not inside Docker)
+
 if os.getenv("RUNNING_IN_DOCKER", "0") != "1":
     load_dotenv(override=True)
 
