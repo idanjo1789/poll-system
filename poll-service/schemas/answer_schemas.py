@@ -1,3 +1,4 @@
+# app/schemas/answer_schemas.py
 from __future__ import annotations
 
 from datetime import datetime
@@ -14,7 +15,7 @@ class AnswerResponse(BaseModel):
     answer_id: int
     question_id: int
     text: str
-    choice: int = Field(..., ge=1, le=4) 
+    choice: int = Field(..., ge=1, le=4)  # computed on read (1..4)
     created_at: datetime
 
 
@@ -23,5 +24,3 @@ class AnswerListResponse(BaseModel):
     total: int
     limit: int
     offset: int
-
-

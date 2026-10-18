@@ -17,6 +17,7 @@ class QuestionUpdate(BaseModel):
 
 
 class QuestionResponse(BaseModel):
+    # Repository returns: question_id, title, description, is_active, created_at
     id: int = Field(..., alias="question_id")
     title: str
     description: Optional[str]
@@ -32,4 +33,3 @@ class QuestionListResponse(BaseModel):
     total: int
     limit: int
     offset: int
-

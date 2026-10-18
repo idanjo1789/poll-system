@@ -1,0 +1,17 @@
+
+# Local test files
+user-service/preflight.py
+user-service/preflight_server.py
+user-service/preflight_server_v2.py
+
+# Environment and secrets
+.env
+.env.*
+**/.env
+**/.env.*
+
+# Python
+.venv/
+**/.venv/
+__pycache__/
+*.pyc
