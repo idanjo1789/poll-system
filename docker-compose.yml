@@ -9,7 +9,7 @@ services:
     volumes:
       - mysql_user_data:/var/lib/mysql
       - ./db-init/user:/docker-entrypoint-initdb.d:ro
-    # ✅ enable access from host (Windows) for local user-service runs
+
     ports:
       - "3308:3306"
 
@@ -29,7 +29,7 @@ services:
     volumes:
       - mysql_poll_data:/var/lib/mysql
       - ./db-init/poll:/docker-entrypoint-initdb.d:ro
-    # (Optional) access from host for debugging
+
     ports:
       - "3307:3306"
     healthcheck:
